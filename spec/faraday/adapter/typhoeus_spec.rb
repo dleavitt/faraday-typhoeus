@@ -7,7 +7,7 @@ RSpec.describe Faraday::Adapter::Typhoeus do
   features :request_body_on_query_methods,
           #  :reason_phrase_parse,
           #  :compression,
-          #  :streaming,
+           :streaming,
            :trace_method
 
   # Runs the tests provide by Faraday, according to the features specified above.
