@@ -1,4 +1,4 @@
-# Faraday Adapter Template
+# Faraday Adapter Typhoeus
 
 This repo is a template for building [Faraday][faraday] adapters.
 Faraday is an HTTP client library that provides a common interface over many adapters.

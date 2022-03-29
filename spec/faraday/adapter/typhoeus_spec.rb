@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe Faraday::Adapter::MyAdapter do
+RSpec.describe Faraday::Adapter::Typhoeus do
   # Since not all adapters support all the features Faraday has to offer, you can use the `features` method to turn on
   # only the ones you know you can support.
   # TODO: provide the full list of available features!

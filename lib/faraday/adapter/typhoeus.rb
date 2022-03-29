@@ -1,22 +1,38 @@
 # frozen_string_literal: true
 
+require 'typhoeus'
+
 module Faraday
   class Adapter
     # This class provides the main implementation for your adapter.
     # There are some key responsibilities that your adapter should satisfy:
     # * Initialize and store internally the client you chose (e.g. Net::HTTP)
     # * Process requests and save the response (see `#call`)
-    class MyAdapter < Faraday::Adapter
+    class Typhoeus < Faraday::Adapter
+      self.supports_parallel = true
+
       # The initialize method is lazy-called ONCE when the connection stack is built.
       # See https://github.com/lostisland/faraday/blob/master/lib/faraday/rack_builder.rb
       #
       # @param app [#call] the "rack app" wrapped in middleware. See https://github.com/lostisland/faraday/blob/master/lib/faraday/rack_builder.rb#L157
       # @param opts [Hash] the options hash with all the options necessary for the adapter to correctly configure itself.
       #   These are automatically stored into `@connection_options` when you call `super`.
-      # @param block [Proc] the configuration block for the adapter. This usually provides the possibility to access the internal client from the outside
-      #   and set properties that are not included in Faraday's API. It's automatically stored into `@config_block` when you call `super`.
-      def initialize(app = nil, opts = {}, &block)
-        super(app, opts, &block)
+      def initialize(app = nil, opts = {})
+        super(app, opts)
+      end
+
+      # Setup Hydra with provided options.
+      #
+      # @example Setup Hydra.
+      #   Faraday::Adapter::Typhoeus.setup_parallel_manager
+      #   #=> #<Typhoeus::Hydra ... >
+      #
+      # @param (see Typhoeus::Hydra#initialize)
+      # @option (see Typhoeus::Hydra#initialize)
+      #
+      # @return [ Typhoeus::Hydra ] The hydra.
+      def self.setup_parallel_manager(options = {})
+        ::Typhoeus::Hydra.new(options)
       end
 
       # This is the main method in your adapter. Since an adapter is a middleware, this method will be called FOR EVERY REQUEST.
@@ -57,10 +73,10 @@ module Faraday
         # * env.response
       # Finally, it's good practice to rescue client-specific exceptions (e.g. Timeout, ConnectionFailed, etc...)
       # and re-raise them as Faraday Errors. Check `Faraday::Error` for a list of all errors.
-      rescue MyAdapterTimeout => e
-        # Most errors allow you to provide the original exception and optionally (if available) the response, to
-        # make them available outside of the middleware stack.
-        raise Faraday::TimeoutError, e
+      # rescue MyAdapterTimeout => e
+      #   # Most errors allow you to provide the original exception and optionally (if available) the response, to
+      #   # make them available outside of the middleware stack.
+      #   raise Faraday::TimeoutError, e
       end
     end
   end
