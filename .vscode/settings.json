@@ -1,0 +1,35 @@
+{
+  "ruby.lint": {
+    "rubocop": true
+  },
+  "ruby.format": "rubocop",
+  
+  "yaml.schemas": {
+    "https://gist.githubusercontent.com/dleavitt/e6dbb12da833a0e967d1a289e9cc8da2/raw/97fe53487f4803261538b42860c84b26f58817de/rubocop-schema.json": [
+      ".rubocop.yml",
+      ".rubocop_todo.yml"
+    ]
+  },
+  
+  "[ruby]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "rebornix.ruby",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+  },
+
+  "[yaml]": {
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
+
+}

@@ -32,6 +32,8 @@ end
 
 You can also include options for [Typhoeus](https://github.com/typhoeus/typhoeus/blob/3544111b76b95d13da7cc6bfe4eb07921d771d93/lib/typhoeus/easy_factory.rb#L13-L39)/[Ethon](https://github.com/typhoeus/ethon/blob/5d9ddf8f609a6be4b5c60d55e1e338eeeb08f25f/lib/ethon/curls/options.rb#L214-L499) that will be used in every request:
 
+Note that block-style configuration for the adapter is not currently supported.
+
 ```ruby
 conn = Faraday.new(...) do |f|
   f.adapter :typhoeus, forbid_reuse: true, maxredirs: 1
@@ -121,6 +123,8 @@ To release a new version, update the version number in `version.rb`, and then ru
 ### TODO
 
 - [ ] Better tests for parallel functionality (can port them over from Typhoeus)
+- [ ] Support block-based configuration like other adapters
+- [ ] Refactor the adapter a bit to look more like other Faraday 2 adapters (use `connection` etc.)
 - [ ] Compression support
 - [ ] Reason-phrase parsing support
 
