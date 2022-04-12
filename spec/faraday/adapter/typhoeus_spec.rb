@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe Faraday::Adapter::Typhoeus do
-  # Since not all adapters support all the features Faraday has to offer, you can use the `features` method to turn on
-  # only the ones you know you can support.
-  # TODO: provide the full list of available features!
   features :request_body_on_query_methods,
           #  :reason_phrase_parse,
           #  :compression,
@@ -13,7 +10,8 @@ RSpec.describe Faraday::Adapter::Typhoeus do
   # Runs the tests provide by Faraday, according to the features specified above.
   it_behaves_like 'an adapter'
 
-  # Only added the ones that don't require any setup for now
+  # Only added the tests that don't require any setup for now - could port over
+  # more tests from Typhoeus.
 
   let(:base_url) { "http://example.com" }
   let(:adapter) { described_class.new(nil) }
@@ -25,7 +23,7 @@ RSpec.describe Faraday::Adapter::Typhoeus do
     context "when typhoeus request options specified" do
       let(:adapter) { described_class.new(nil, { :forbid_reuse => true, :maxredirs => 1 }) }
 
-      it "should set option for request" do
+      it "should set options for request" do
         expect(request.options[:forbid_reuse]).to be_truthy
         expect(request.options[:maxredirs]).to eq(1)
       end

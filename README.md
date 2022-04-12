@@ -1,38 +1,133 @@
-# Faraday Adapter Typhoeus
+# Faraday Typhoeus Adapter
 
-This repo is a template for building [Faraday][faraday] adapters.
-Faraday is an HTTP client library that provides a common interface over many adapters.
-Every adapter is defined into it's own gem. Use this repository to create your own adapter gem.
+This is a [Faraday][faraday] adapter for the [Typhoeus](https://github.com/typhoeus/typhoeus) parallel HTTP client. It supports parallel HTTP requests and streaming.
 
-## Getting Started
+## Installation
 
-### Setting up and cloning the repo
+Add this line to your application's Gemfile:
 
-You can start using GitHub's [Use this template][use-template] button.
-![Use this template](https://docs.github.com/assets/images/help/repository/use-this-template-button.png)
+```ruby
+gem 'faraday-typhoeus'
+```
 
-This will create a repository based off from this template.
-After that is created, you can clone it locally to start working on it.
+And then execute:
 
-### Refactoring the template
+    $ bundle install
 
-The next step is for you to find and replace all the "parametrised" names in this template and change them to make it unique.
-First of all, you should decide on the name of your adapter.
-The current convention (which is by no means mandatory) is to call adapter gems as `faraday-<adapter_name>`.
-Here are some examples:
+Or install it yourself as:
 
-* `HTTP`: [`faraday-http`][faraday-http]
-* `Net::HTTP`: [`faraday-net_http`][faraday-net_http]
+    $ gem install faraday-typhoeus
 
-In this template repository, the placeholder for your chosen adapter name is `MyAdapter` (`my_adapter`).
-So once you decide on the final name you want to use you should update all occurrences of `MyAdapter` and all files with `my_adapter` in their name with the new name you chose.
+## Usage
 
-### Main implementation
+### Basic
 
-The bulk of the implementation is in the `Faraday::Adapter::MyAdapter` class.
-We've added lots of comments in there to guide you through it, but if you have any doubt/question please don't hesitate to get in touch! 
+```ruby
+conn = Faraday.new(...) do |f|
+  f.adapter :typhoeus
+end
+```
 
-[faraday]: https://github.com/lostisland/faraday
-[faraday-http]: https://github.com/lostisland/faraday-http
-[faraday-net_http]: https://github.com/lostisland/faraday-net_http
-[use-template]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template
+### Typhoeus Options
+
+You can also include options for [Typhoeus](https://github.com/typhoeus/typhoeus/blob/3544111b76b95d13da7cc6bfe4eb07921d771d93/lib/typhoeus/easy_factory.rb#L13-L39)/[Ethon](https://github.com/typhoeus/ethon/blob/5d9ddf8f609a6be4b5c60d55e1e338eeeb08f25f/lib/ethon/curls/options.rb#L214-L499) that will be used in every request:
+
+```ruby
+conn = Faraday.new(...) do |f|
+  f.adapter :typhoeus, forbid_reuse: true, maxredirs: 1
+end
+```
+
+### Parallel Requests
+
+The adapter supports Typhoeus's parallel request functionality:
+
+```ruby
+conn = Faraday.new(...) do |f|
+  f.request  :url_encoded
+  f.response :logger
+  f.adapter  :typhoeus
+end
+
+responses = []
+
+conn.in_parallel do
+  # responses[0].body will be null here since the requests have not been 
+  # completed
+  responses = [
+    conn.get('/first'), 
+    conn.get('/second'),
+  ]
+end
+
+# after it has been completed the response information is fully available in
+# response[0].status, etc
+responses[0].body
+responses[1].body
+```
+
+### Streaming Responses
+
+The adapter supports [streamed responses](https://lostisland.github.io/faraday/usage/streaming) via the `on_data` option:
+
+```ruby
+conn = Faraday.new(...) do |f|
+  f.adapter :typhoeus
+end
+
+# Streaming
+
+chunks = []
+
+conn.get('/stream') do |req|
+  req.options.on_data proc do |chunk, received_bytes|
+    chunks << chunk
+  end
+end
+
+body = chunks.join
+
+# Server-Sent Event Polling
+
+body = nil
+
+begin
+  conn.get('/events') do |req|
+    req.options.timeout = 30
+
+    req.options.on_data = proc do |chunk|
+      # stop listening once we get some data (YMMV)
+      if chunk.start_with?("data: ")
+        body = chunk
+        :abort # abort the request, we're done
+      end
+    end
+  end
+rescue Faraday::ConnectionFailed => ex
+  raise ex unless body
+end
+```
+
+## Resources
+
+- See [Typhoeus Documentation](https://github.com/typhoeus/typhoeus) for more info.
+
+## Development
+
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](rubygems).
+
+### TODO
+
+- [ ] Better tests for parallel functionality (can port them over from Typhoeus)
+- [ ] Compression support
+- [ ] Reason-phrase parsing support
+
+## Contributing
+
+Bug reports and pull requests are welcome on [GitHub][repo].
+
+## License
+
+The gem is available as open source under the terms of the [license][license].

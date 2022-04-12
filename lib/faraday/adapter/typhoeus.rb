@@ -17,8 +17,8 @@ module Faraday
       # @param app [#call] the "rack app" wrapped in middleware. See https://github.com/lostisland/faraday/blob/master/lib/faraday/rack_builder.rb#L157
       # @param opts [Hash] the options hash with all the options necessary for the adapter to correctly configure itself.
       #   These are automatically stored into `@connection_options` when you call `super`.
-      def initialize(app = nil, opts = {})
-        super(app, opts)
+      def initialize(app = nil, opts = {}, &block)
+        super(app, opts, &block)
       end
 
       # Setup Hydra with provided options.
