@@ -22,14 +22,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir.glob('lib/**/*') + %w[README.md LICENSE.md]
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'faraday', '~> 2.0'
-
-  spec.add_development_dependency 'bundler', '~> 2.0'
-  spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'simplecov', '~> 0.19.0'
-
-  spec.add_development_dependency 'multipart-parser', '~> 0.1.1'
-  spec.add_development_dependency 'webmock', '~> 3.4'
-  spec.add_dependency "typhoeus", "~> 1.4.0"
+  spec.add_dependency 'faraday', '~> 2.0'
+  spec.add_dependency 'typhoeus', '~> 1.4'
 end

@@ -97,7 +97,7 @@ begin
 
     req.options.on_data = proc do |chunk|
       # stop listening once we get some data (YMMV)
-      if chunk.start_with?("data: ")
+      if chunk.start_with?('data: ')
         body = chunk
         :abort # abort the request, we're done
       end
