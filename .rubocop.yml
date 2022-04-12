@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 require:
   - rubocop-packaging
   - rubocop-performance
@@ -5,7 +7,7 @@ require:
 AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 2.7
 
 Metrics/BlockLength:
   Exclude:
@@ -196,4 +198,45 @@ Style/SwapValues: # (new in 1.1)
 Performance/AncestorsInclude: # (new in 1.7)
   Enabled: true
 Performance/BigDecimalWithNumericArgument: # (new in 1.7)
+  Enabled: true
+
+Gemspec/RequireMFA: # new in 1.23
+  Enabled: true
+Lint/AmbiguousOperatorPrecedence: # new in 1.21
+  Enabled: true
+Lint/IncompatibleIoSelectWithFiberScheduler: # new in 1.21
+  Enabled: true
+Lint/RefinementImportMethods: # new in 1.27
+  Enabled: true
+Lint/RequireRelativeSelfPath: # new in 1.22
+  Enabled: true
+Lint/UselessRuby2Keywords: # new in 1.23
+  Enabled: true
+Naming/BlockForwarding: # new in 1.24
+  Enabled: true
+Security/IoMethods: # new in 1.22
+  Enabled: true
+Style/FileRead: # new in 1.24
+  Enabled: true
+Style/FileWrite: # new in 1.24
+  Enabled: true
+Style/MapToHash: # new in 1.24
+  Enabled: true
+Style/NestedFileDirname: # new in 1.26
+  Enabled: true
+Style/NumberedParameters: # new in 1.22
+  Enabled: true
+Style/NumberedParametersLimit: # new in 1.22
+  Enabled: true
+Style/OpenStructUse: # new in 1.23
+  Enabled: true
+Style/RedundantInitialize: # new in 1.27
+  Enabled: true
+Style/SelectByRegexp: # new in 1.22
+  Enabled: true
+Performance/ConcurrentMonotonicTime: # new in 1.12
+  Enabled: true
+Performance/MapCompact: # new in 1.11
+  Enabled: true
+Performance/StringIdentifierArgument: # new in 1.13
   Enabled: true
