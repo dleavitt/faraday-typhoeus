@@ -1,6 +1,6 @@
 # Faraday Typhoeus Adapter
 
-This is a [Faraday][faraday] adapter for the [Typhoeus][typhoeus] parallel HTTP client. It supports parallel HTTP requests and streaming.
+This is a [Faraday 2][faraday] adapter for the [Typhoeus][typhoeus] parallel HTTP client. It supports parallel HTTP requests and streaming.
 
 ## Installation
 
