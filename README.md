@@ -1,6 +1,6 @@
 # Faraday Typhoeus Adapter
 
-This is a [Faraday][faraday] adapter for the [Typhoeus](https://github.com/typhoeus/typhoeus) parallel HTTP client. It supports parallel HTTP requests and streaming.
+This is a [Faraday][faraday] adapter for the [Typhoeus][typhoeus] parallel HTTP client. It supports parallel HTTP requests and streaming.
 
 ## Installation
 
@@ -30,7 +30,7 @@ end
 
 ### Typhoeus Options
 
-You can also include options for [Typhoeus](https://github.com/typhoeus/typhoeus/blob/3544111b76b95d13da7cc6bfe4eb07921d771d93/lib/typhoeus/easy_factory.rb#L13-L39)/[Ethon](https://github.com/typhoeus/ethon/blob/5d9ddf8f609a6be4b5c60d55e1e338eeeb08f25f/lib/ethon/curls/options.rb#L214-L499) that will be used in every request:
+You can also include options for [Typhoeus][typhoeus_options]/[Ethon][ethon_options] that will be used in every request:
 
 Note that block-style configuration for the adapter is not currently supported.
 
@@ -70,7 +70,7 @@ responses[1].body
 
 ### Streaming Responses
 
-The adapter supports [streamed responses](https://lostisland.github.io/faraday/usage/streaming) via the `on_data` option:
+The adapter supports [streamed responses](faraday_streaming) via the `on_data` option:
 
 ```ruby
 conn = Faraday.new(...) do |f|
@@ -112,7 +112,7 @@ end
 
 ## Resources
 
-- See [Typhoeus Documentation](https://github.com/typhoeus/typhoeus) for more info.
+- See [Typhoeus Documentation][typhoeus] for more info.
 
 ## Development
 
@@ -135,3 +135,13 @@ Bug reports and pull requests are welcome on [GitHub][repo].
 ## License
 
 The gem is available as open source under the terms of the [license][license].
+
+
+[faraday]: https://github.com/lostisland/faraday
+[typhoeus]: https://github.com/typhoeus/typhoeus
+[typhoeus_options]: https://github.com/typhoeus/typhoeus/blob/3544111b76b95d13da7cc6bfe4eb07921d771d93/lib/typhoeus/easy_factory.rb#L13-L39
+[ethon_options]: https://github.com/typhoeus/ethon/blob/5d9ddf8f609a6be4b5c60d55e1e338eeeb08f25f/lib/ethon/curls/options.rb#L214-L499
+[faraday_streaming]: https://lostisland.github.io/faraday/usage/streaming
+[repo]: https://github.com/dleavitt/faraday-typhoeus
+[license]: LICENSE.md
+[rubygems]: https://github.com/dleavitt/faraday-typhoeus/blob/main/rubygems
