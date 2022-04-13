@@ -5,7 +5,7 @@
   "ruby.format": "rubocop",
   
   "yaml.schemas": {
-    "https://gist.githubusercontent.com/dleavitt/e6dbb12da833a0e967d1a289e9cc8da2/raw/97fe53487f4803261538b42860c84b26f58817de/rubocop-schema.json": [
+    "https://gist.githubusercontent.com/dleavitt/e6dbb12da833a0e967d1a289e9cc8da2/raw/8e638ac9fc4cce11d2935c93be8931a6f39d331f/rubocop-schema.json": [
       ".rubocop.yml",
       ".rubocop_todo.yml"
     ]

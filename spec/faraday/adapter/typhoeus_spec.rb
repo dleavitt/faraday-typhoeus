@@ -2,7 +2,7 @@
 
 RSpec.describe Faraday::Adapter::Typhoeus do
   features :request_body_on_query_methods,
-           #  :reason_phrase_parse,
+           :reason_phrase_parse,
            #  :compression,
            :streaming,
            :trace_method
@@ -10,12 +10,11 @@ RSpec.describe Faraday::Adapter::Typhoeus do
   # Runs the tests provide by Faraday, according to the features specified above.
   it_behaves_like 'an adapter'
 
-  # Only added the tests that don't require any setup for now - could port over
-  # more tests from Typhoeus.
-
   let(:base_url) { 'http://example.com' }
   let(:adapter) { described_class.new(nil) }
   let(:request) { Typhoeus::Request.new(base_url) }
+
+  # TODO: context "when a response is stubbed"
 
   describe '#initialize' do
     let(:request) { adapter.method(:typhoeus_request).call({}) }
@@ -257,6 +256,73 @@ RSpec.describe Faraday::Adapter::Typhoeus do
 
       it 'returns false' do
         expect(adapter.method(:parallel?).call(env)).to be_falsey
+      end
+    end
+  end
+
+  context 'requests' do
+    let(:http_method) { :get }
+    let!(:request_stub) { stub_request(http_method, base_url) }
+
+    let(:conn) do
+      Faraday.new(url: base_url) do |faraday|
+        faraday.adapter :typhoeus
+      end
+    end
+
+    after do
+      expect(request_stub).to have_been_requested unless request_stub.disabled?
+    end
+
+    context 'when parallel' do
+      it 'returns a faraday response' do
+        response = nil
+        conn.in_parallel { response = conn.get('/') }
+        expect(response).to be_a(Faraday::Response)
+      end
+
+      it 'succeeds' do
+        response = nil
+        conn.in_parallel { response = conn.get('/') }
+        expect(response.status).to be(200)
+      end
+    end
+
+    context 'when not parallel' do
+      it 'returns a faraday response' do
+        expect(conn.get('/')).to be_a(Faraday::Response)
+      end
+
+      it 'succeeds' do
+        expect(conn.get('/').status).to be(200)
+      end
+    end
+
+    context 'failed connection' do
+      before do
+        request_stub.to_timeout
+      end
+
+      context 'when parallel' do
+        it "isn't successful" do
+          response = nil
+          conn.in_parallel { response = conn.get('/') }
+          expect(response.success?).to be_falsey
+        end
+
+        it 'translates the response code into an error message' do
+          response = nil
+          conn.in_parallel { response = conn.get('/') }
+
+          expect(response.env[:typhoeus_timed_out]).to be true
+          expect(response.env[:typhoeus_return_message]).to eq('Timeout was reached')
+        end
+      end
+
+      context 'when not parallel' do
+        it 'raises an error' do
+          expect { conn.get('/') }.to raise_error(Faraday::TimeoutError, 'Timeout was reached')
+        end
       end
     end
   end

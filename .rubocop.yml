@@ -8,6 +8,7 @@ AllCops:
   DisplayCopNames: true
   DisplayStyleGuide: true
   TargetRubyVersion: 2.7
+  SuggestExtensions: false
 
 Metrics/BlockLength:
   Exclude:

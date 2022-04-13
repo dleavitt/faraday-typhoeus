@@ -103,8 +103,9 @@ module Faraday
         req.on_complete do |resp|
           if resp.timed_out?
             env[:typhoeus_timed_out] = true
+            env[:typhoeus_return_message] = resp.return_message
             unless parallel?(env)
-              raise Faraday::TimeoutError, 'request timed out'
+              raise Faraday::TimeoutError, resp.return_message
             end
           elsif resp.response_code.zero? || ((resp.return_code != :ok) && !resp.mock?)
             env[:typhoeus_connection_failed] = true
@@ -114,7 +115,7 @@ module Faraday
             end
           end
 
-          save_response(env, resp.code, resp.body) do |response_headers|
+          save_response(env, resp.code, resp.body, nil, resp.status_message) do |response_headers|
             response_headers.parse resp.response_headers
           end
           # in async mode, :response is initialized at this point
