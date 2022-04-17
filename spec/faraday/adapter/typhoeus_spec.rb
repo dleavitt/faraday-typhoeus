@@ -3,6 +3,8 @@
 RSpec.describe Faraday::Adapter::Typhoeus do
   features :request_body_on_query_methods,
            :reason_phrase_parse,
+           # transparent compression IS supported but tests will fail b/c
+           # webmock is unaware of this
            #  :compression,
            :streaming,
            :trace_method
@@ -18,6 +20,13 @@ RSpec.describe Faraday::Adapter::Typhoeus do
 
   describe '#initialize' do
     let(:request) { adapter.method(:typhoeus_request).call({}) }
+
+    context 'when no options specified' do
+      let(:adapter) { described_class.new(nil) }
+      it 'defers to curl on accepted encodings' do
+        expect(request.options[:accept_encoding]).to eq('')
+      end
+    end
 
     context 'when typhoeus request options specified' do
       let(:adapter) { described_class.new(nil, { forbid_reuse: true, maxredirs: 1 }) }

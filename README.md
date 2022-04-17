@@ -125,8 +125,8 @@ To release a new version, update the version number in `version.rb`, and then ru
 - [ ] Better tests for parallel functionality (can port them over from Typhoeus)
 - [ ] Support block-based configuration like other adapters
 - [ ] Refactor the adapter a bit to look more like other Faraday 2 adapters (use `connection` etc.)
-- [ ] Compression support
-- [ ] Reason-phrase parsing support
+- [x] Compression support
+- [x] Reason-phrase parsing support
 
 ## Contributing
 

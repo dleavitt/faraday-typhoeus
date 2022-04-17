@@ -4,24 +4,8 @@ require 'typhoeus'
 
 module Faraday
   class Adapter
-    # This class provides the main implementation for your adapter.
-    # There are some key responsibilities that your adapter should satisfy:
-    # * Initialize and store internally the client you chose (e.g. Net::HTTP)
-    # * Process requests and save the response (see `#call`)
     class Typhoeus < Faraday::Adapter
       self.supports_parallel = true
-
-      # The initialize method is lazy-called ONCE when the connection stack is
-      # built. See https://github.com/lostisland/faraday/blob/master/lib/faraday/rack_builder.rb
-      #
-      # @param app [#call] the "rack app" wrapped in middleware. See
-      #   https://github.com/lostisland/faraday/blob/master/lib/faraday/rack_builder.rb#L157
-      # @param opts [Hash] the options hash with all the options necessary for
-      #   the adapter to correctly configure itself. These are automatically
-      #   stored into `@connection_options` when you call `super`.
-      def initialize(app = nil, opts = {}, &block)
-        super(app, opts, &block)
-      end
 
       # Setup Hydra with provided options.
       #
@@ -43,14 +27,6 @@ module Faraday
         perform_request env
         @app.call(env)
 
-        # NOTE: An adapter `call` MUST return the `env.response`. If
-        # `save_response` is the last line in your `call` method implementation,
-        # it will automatically return the response for you. Otherwise, you'll
-        # need to manually do so. You can do this with any (not both) of the
-        # following lines:
-        # * @app.call(env)
-        # * env.response
-        #
         # Finally, it's good practice to rescue client-specific exceptions (e.g.
         # Timeout, ConnectionFailed, etc...) and re-raise them as Faraday
         # Errors. Check `Faraday::Error` for a list of all errors.
@@ -129,7 +105,9 @@ module Faraday
         opts = {
           method: env[:method],
           body: env[:body],
-          headers: env[:request_headers]
+          headers: env[:request_headers],
+          # https://curl.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html
+          accept_encoding: ''
         }.merge(@connection_options)
 
         ::Typhoeus::Request.new(env[:url].to_s, opts)

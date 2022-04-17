@@ -39,6 +39,8 @@ Style/DoubleNegation:
   Enabled: false
 
 Style/Documentation:
+  AllowedConstants:
+    - "Typhoeus"
   Exclude:
     - 'spec/**/*'
     - 'examples/**/*'
