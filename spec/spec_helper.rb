@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'faraday'
 require 'rack'
 require 'faraday/typhoeus'
 # This is the magic bit. It requires a tests suite from the Faraday gem that you can run against your adapter
