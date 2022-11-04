@@ -20,6 +20,11 @@ Or install it yourself as:
 
 ## Usage
 
+In order to register the adapter with Faraday, make sure you've required this gem first:
+```ruby
+require 'faraday-typhoeus'
+```
+
 ### Basic
 
 ```ruby
