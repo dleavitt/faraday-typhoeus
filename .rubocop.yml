@@ -10,6 +10,10 @@ AllCops:
   TargetRubyVersion: 2.6
   SuggestExtensions: false
 
+Naming/FileName:
+  Exclude:
+    - lib/faraday-typhoeus.rb
+
 Metrics/BlockLength:
   Exclude:
     - spec/**/*.rb
