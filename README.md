@@ -14,9 +14,7 @@ And then execute:
 
     $ bundle install
 
-Or install it yourself as:
-
-    $ gem install faraday-typhoeus
+Or install it yourself with `gem install faraday-typhoeus` and require it in your ruby code with `require 'faraday/typhoeus'`
 
 ## Usage
 
