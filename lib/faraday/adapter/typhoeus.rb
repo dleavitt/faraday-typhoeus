@@ -92,6 +92,10 @@ module Faraday
             end
           end
 
+          env[:typhoeus_timings] = %w[appconnect connect namelookup pretransfer redirect starttransfer total].map do |key|
+            [key, resp.send("#{key}_time")]
+          end.to_h
+
           save_response(env, resp.code, resp.body, nil, resp.status_message) do |response_headers|
             response_headers.parse resp.response_headers
           end
