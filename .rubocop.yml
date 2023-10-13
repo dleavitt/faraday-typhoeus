@@ -15,6 +15,17 @@ Metrics/BlockLength:
     - spec/**/*.rb
     - examples/**/*.rb
 
+Metrics/ClassLength:
+  Max: 300
+Metrics/AbcSize:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/MethodLength:
+  Max: 100
+Metrics/PerceivedComplexity:
+  Enabled: false
+
 Layout/EmptyLinesAroundAttributeAccessor: # (0.83)
   Enabled: true
 
@@ -55,7 +66,8 @@ Style/HashTransformValues:
   Enabled: true
 Style/IfUnlessModifier:
   Enabled: false
-
+Style/Send:
+  Enabled: true
 Style/SlicingWithRange: # (0.83)
   Enabled: true
 
