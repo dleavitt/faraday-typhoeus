@@ -1,6 +1,5 @@
 {
   "recommendations": [
-    "rebornix.ruby",
     "redhat.vscode-yaml",
     "ban.spellright"
   ]
