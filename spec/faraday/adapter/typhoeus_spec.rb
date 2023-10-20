@@ -305,6 +305,20 @@ RSpec.describe Faraday::Adapter::Typhoeus do
       it 'succeeds' do
         expect(conn.get('/').status).to be(200)
       end
+
+      it 'sets timings' do
+        response = conn.get('/')
+        # TODO: make these not-nil after https://github.com/bblimke/webmock/pull/1038 lands
+        expect(response.env.custom_members[:typhoeus_timings]).to eq({
+                                                                       appconnect: nil,
+                                                                       connect: nil,
+                                                                       namelookup: nil,
+                                                                       pretransfer: nil,
+                                                                       redirect: nil,
+                                                                       starttransfer: nil,
+                                                                       total: nil
+                                                                     })
+      end
     end
 
     context 'failed connection' do
