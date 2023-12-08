@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "redhat.vscode-yaml",
+    "Shopify.ruby-lsp",
     "ban.spellright"
   ]
 }

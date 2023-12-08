@@ -5,14 +5,14 @@ gemspec
 
 gem 'bundler', '~> 2.0'
 gem 'rack', '~> 2.2'
-gem 'rake', '~> 13.0'
-gem 'rspec', '~> 3.7'
-gem 'simplecov', '~> 0.21.2'
+gem 'rake', '~> 13.1'
+gem 'rspec', '~> 3.12'
+gem 'simplecov', '~> 0.22'
 
 gem 'multipart-parser', '~> 0.1.1'
 gem 'webmock', '~> 3.4'
 
-gem 'rubocop', '~> 1.31'
+gem 'rubocop', '~> 1.58'
 gem 'rubocop-packaging', '~> 0.5'
-gem 'rubocop-performance', '~> 1.0'
-gem 'rubocop-rspec', '~> 2.9'
+gem 'rubocop-performance', '~> 1.19'
+gem 'rubocop-rspec', '~> 2.25'
