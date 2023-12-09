@@ -13,8 +13,6 @@ Gem::Specification.new do |spec|
   spec.homepage = 'https://github.com/dleavitt/faraday-typhoeus'
   spec.license = 'MIT'
 
-  spec.required_ruby_version = Gem::Requirement.new('>= 2.6.0')
-
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/dleavitt/faraday-typhoeus'
   spec.metadata['changelog_uri'] = 'https://github.com/dleavitt/faraday-typhoeus'
@@ -22,6 +20,8 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.glob('lib/**/*') + %w[README.md LICENSE.md]
   spec.require_paths = ['lib']
+
+  spec.required_ruby_version = Gem::Requirement.new('>= 2.7.0')
 
   spec.add_dependency 'faraday', '~> 2.0'
   spec.add_dependency 'typhoeus', '~> 1.4'
