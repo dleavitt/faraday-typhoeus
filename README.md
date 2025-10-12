@@ -68,7 +68,7 @@ responses[1].body
 
 ### Streaming Responses
 
-The adapter supports [streamed responses](faraday_streaming) via the `on_data` option:
+The adapter supports [streamed responses][faraday_streaming] via the `on_data` option:
 
 ```ruby
 conn = Faraday.new(...) do |f|
@@ -139,7 +139,7 @@ The gem is available as open source under the terms of the [license][license].
 [typhoeus]: https://github.com/typhoeus/typhoeus
 [typhoeus_options]: https://github.com/typhoeus/typhoeus/blob/3544111b76b95d13da7cc6bfe4eb07921d771d93/lib/typhoeus/easy_factory.rb#L13-L39
 [ethon_options]: https://github.com/typhoeus/ethon/blob/5d9ddf8f609a6be4b5c60d55e1e338eeeb08f25f/lib/ethon/curls/options.rb#L214-L499
-[faraday_streaming]: https://lostisland.github.io/faraday/usage/streaming
+[faraday_streaming]: https://lostisland.github.io/faraday/#/advanced/streaming-responses
 [repo]: https://github.com/dleavitt/faraday-typhoeus
 [license]: LICENSE.md
 [rubygems]: https://github.com/dleavitt/faraday-typhoeus/blob/main/rubygems

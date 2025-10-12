@@ -308,15 +308,14 @@ RSpec.describe Faraday::Adapter::Typhoeus do
 
       it 'sets timings' do
         response = conn.get('/')
-        # TODO: make these not-nil after https://github.com/bblimke/webmock/pull/1038 lands
         expect(response.env.custom_members[:typhoeus_timings]).to eq({
-                                                                       appconnect: nil,
-                                                                       connect: nil,
-                                                                       namelookup: nil,
-                                                                       pretransfer: nil,
-                                                                       redirect: nil,
-                                                                       starttransfer: nil,
-                                                                       total: nil
+                                                                       appconnect: 0,
+                                                                       connect: 0,
+                                                                       namelookup: 0,
+                                                                       pretransfer: 0,
+                                                                       redirect: 0,
+                                                                       starttransfer: 0,
+                                                                       total: 0
                                                                      })
       end
     end
