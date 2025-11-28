@@ -114,7 +114,7 @@ module Faraday
           body: env[:body],
           headers: env[:request_headers],
           # https://curl.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html
-          accept_encoding: ''
+          accept_encoding: nil
         }.merge(@connection_options)
 
         ::Typhoeus::Request.new(env[:url].to_s, opts)

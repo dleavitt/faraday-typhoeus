@@ -24,7 +24,7 @@ RSpec.describe Faraday::Adapter::Typhoeus do
     context 'when no options specified' do
       let(:adapter) { described_class.new(nil) }
       it 'defers to curl on accepted encodings' do
-        expect(request.options[:accept_encoding]).to eq('')
+        expect(request.options[:accept_encoding]).to eq(nil)
       end
     end
 
