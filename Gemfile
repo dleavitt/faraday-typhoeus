@@ -3,7 +3,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'bundler', '~> 2.0'
+gem 'bundler', '>= 2.0'
 gem 'rack', '~> 2.2'
 gem 'rake', '~> 13.1'
 gem 'rspec', '~> 3.12'
