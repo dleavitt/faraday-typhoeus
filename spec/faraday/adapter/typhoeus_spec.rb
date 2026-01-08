@@ -28,6 +28,14 @@ RSpec.describe Faraday::Adapter::Typhoeus do
       end
     end
 
+    context 'when accept_encoding explicitly set to nil' do
+      let(:adapter) { described_class.new(nil, { accept_encoding: nil }) }
+
+      it 'tells curl not to do any fancy encoding handling' do
+        expect(request.options[:accept_encoding]).to be nil
+      end
+    end
+
     context 'when typhoeus request options specified' do
       let(:adapter) { described_class.new(nil, { forbid_reuse: true, maxredirs: 1 }) }
 

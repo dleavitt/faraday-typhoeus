@@ -116,6 +116,16 @@ rescue Faraday::ConnectionFailed => ex
 end
 ```
 
+### Compression
+
+By default, this adapter takes advantage of libcurl's ability to [transparently handle HTTP compression][curl_accept_encoding]. To disable this behavior, set `accept_encoding` to `nil`:
+
+```ruby
+conn = Faraday.new(...) do |f|
+  f.adapter :typhoeus, accept_encoding: nil
+end
+```
+
 ## Resources
 
 - See [Typhoeus Documentation][typhoeus] for more info.
@@ -152,3 +162,4 @@ The gem is available as open source under the terms of the [license][license].
 [license]: LICENSE.md
 [rubygems]: https://github.com/dleavitt/faraday-typhoeus/blob/main/rubygems
 [max_concurrency]: https://github.com/typhoeus/typhoeus?tab=readme-ov-file#specifying-max-concurrency
+[curl_accept_encoding]: https://curl.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html
