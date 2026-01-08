@@ -66,6 +66,14 @@ responses[0].body
 responses[1].body
 ```
 
+Typhoeus's [max concurrency][max_concurrency] defaults to 200 and can be controlled like so:
+
+```ruby
+conn.in_parallel(Typhoeus::Hydra.new(max_concurrency: 20)) do
+  # ...requests
+end
+```
+
 ### Streaming Responses
 
 The adapter supports [streamed responses][faraday_streaming] via the `on_data` option:
@@ -143,3 +151,4 @@ The gem is available as open source under the terms of the [license][license].
 [repo]: https://github.com/dleavitt/faraday-typhoeus
 [license]: LICENSE.md
 [rubygems]: https://github.com/dleavitt/faraday-typhoeus/blob/main/rubygems
+[max_concurrency]: https://github.com/typhoeus/typhoeus?tab=readme-ov-file#specifying-max-concurrency
