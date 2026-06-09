@@ -78,6 +78,12 @@ module Faraday
         end
 
         req.on_complete do |resp|
+          env[:typhoeus_timings] = %i[
+            appconnect connect namelookup pretransfer redirect starttransfer total
+          ].to_h do |key|
+            [key, resp.public_send("#{key}_time")]
+          end
+
           if resp.timed_out?
             env[:typhoeus_timed_out] = true
             env[:typhoeus_return_message] = resp.return_message
@@ -90,12 +96,6 @@ module Faraday
             unless parallel?(env)
               raise Faraday::ConnectionFailed, resp.return_message
             end
-          end
-
-          env[:typhoeus_timings] = %i[
-            appconnect connect namelookup pretransfer redirect starttransfer total
-          ].to_h do |key|
-            [key, resp.public_send("#{key}_time")]
           end
 
           save_response(env, resp.code, resp.body, nil, resp.status_message) do |response_headers|

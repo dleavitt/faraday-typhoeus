@@ -326,6 +326,28 @@ RSpec.describe Faraday::Adapter::Typhoeus do
                                                                        total: 0
                                                                      })
       end
+
+      context 'when the request times out' do
+        before { request_stub.to_timeout }
+
+        it 'sets timings before raising' do
+          captured_env = nil
+          capturing_middleware = Class.new(Faraday::Middleware) do
+            define_method(:on_request) { |env| captured_env = env }
+          end
+
+          conn = Faraday.new(url: base_url) do |faraday|
+            faraday.use capturing_middleware
+            faraday.adapter :typhoeus
+          end
+
+          expect { conn.get('/') }.to raise_error(Faraday::TimeoutError)
+          expect(captured_env[:typhoeus_timed_out]).to be true
+          expect(captured_env[:typhoeus_timings].keys).to contain_exactly(
+            :appconnect, :connect, :namelookup, :pretransfer, :redirect, :starttransfer, :total
+          )
+        end
+      end
     end
 
     context 'failed connection' do
