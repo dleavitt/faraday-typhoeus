@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'socket'
+
 RSpec.describe Faraday::Adapter::Typhoeus do
   features :request_body_on_query_methods,
            :reason_phrase_parse,
@@ -353,6 +355,101 @@ RSpec.describe Faraday::Adapter::Typhoeus do
         it 'raises an error' do
           expect { conn.get('/') }.to raise_error(Faraday::TimeoutError, 'Timeout was reached')
         end
+      end
+    end
+  end
+
+  context 'when on_data returns :abort mid-stream' do
+    # libcurl only invokes the write callback on a real transfer, so these
+    # specs stream from a local server instead of a WebMock stub.
+    let(:server) { TCPServer.new('127.0.0.1', 0) }
+    let(:port) { server.addr[1] }
+    let(:server_thread) do
+      Thread.new do
+        loop do
+          client = server.accept
+          Thread.new(client) do |sock|
+            nil while (line = sock.gets) && line != "\r\n"
+            sock.write "HTTP/1.1 200 OK\r\n" \
+                       "Content-Type: text/event-stream\r\n" \
+                       "X-Request-Id: abc-123\r\n" \
+                       "Transfer-Encoding: chunked\r\n\r\n"
+            5.times do |i|
+              chunk = "data: event-#{i}\n\n"
+              sock.write "#{chunk.bytesize.to_s(16)}\r\n#{chunk}\r\n"
+              sleep 0.05
+            end
+            sock.write "0\r\n\r\n"
+          rescue Errno::EPIPE, Errno::ECONNRESET, IOError
+            # the client aborted the transfer — expected
+          ensure
+            sock.close
+          end
+        end
+      end
+    end
+
+    let(:conn) do
+      Faraday.new(url: "http://127.0.0.1:#{port}") do |faraday|
+        faraday.adapter :typhoeus
+      end
+    end
+
+    before { server_thread }
+
+    after do
+      server_thread.kill
+      server.close
+    end
+
+    def get_stream(&on_data)
+      conn.get('/stream') do |req|
+        req.options.on_data = on_data
+      end
+    end
+
+    it 'returns the response instead of raising Faraday::ConnectionFailed' do
+      chunks = []
+
+      response = get_stream do |chunk, _size|
+        chunks << chunk
+        :abort
+      end
+
+      expect(response.status).to eq(200)
+      expect(response.headers['x-request-id']).to eq('abc-123')
+      expect(chunks.size).to eq(1)
+    end
+
+    it 'flags the response as aborted' do
+      response = get_stream { |_chunk, _size| :abort }
+
+      expect(response.env[:typhoeus_aborted]).to be true
+      expect(response.env[:typhoeus_connection_failed]).to be_nil
+    end
+
+    it 'does not flag fully consumed streams as aborted' do
+      chunks = []
+
+      response = get_stream { |chunk, _size| chunks << chunk }
+
+      expect(response.status).to eq(200)
+      expect(chunks.join).to include('event-4')
+      expect(response.env[:typhoeus_aborted]).to be_nil
+    end
+
+    context 'when parallel' do
+      it 'returns the aborted response without marking it failed' do
+        response = nil
+
+        conn.in_parallel do
+          response = get_stream { |_chunk, _size| :abort }
+        end
+
+        expect(response.status).to eq(200)
+        expect(response.headers['x-request-id']).to eq('abc-123')
+        expect(response.env[:typhoeus_aborted]).to be true
+        expect(response.env[:typhoeus_connection_failed]).to be_nil
       end
     end
   end
