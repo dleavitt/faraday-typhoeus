@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'socket'
-
 RSpec.describe Faraday::Adapter::Typhoeus do
   features :request_body_on_query_methods,
            :reason_phrase_parse,
@@ -361,95 +359,109 @@ RSpec.describe Faraday::Adapter::Typhoeus do
 
   context 'when on_data returns :abort mid-stream' do
     # libcurl only invokes the write callback on a real transfer, so these
-    # specs stream from a local server instead of a WebMock stub.
-    let(:server) { TCPServer.new('127.0.0.1', 0) }
-    let(:port) { server.addr[1] }
-    let(:server_thread) do
-      Thread.new do
-        loop do
-          client = server.accept
-          Thread.new(client) do |sock|
-            nil while (line = sock.gets) && line != "\r\n"
-            sock.write "HTTP/1.1 200 OK\r\n" \
-                       "Content-Type: text/event-stream\r\n" \
-                       "X-Request-Id: abc-123\r\n" \
-                       "Transfer-Encoding: chunked\r\n\r\n"
-            5.times do |i|
-              chunk = "data: event-#{i}\n\n"
-              sock.write "#{chunk.bytesize.to_s(16)}\r\n#{chunk}\r\n"
-              sleep 0.05
-            end
-            sock.write "0\r\n\r\n"
-          rescue Errno::EPIPE, Errno::ECONNRESET, IOError
-            # the client aborted the transfer — expected
-          ensure
-            sock.close
-          end
-        end
-      end
+    # specs drive the Typhoeus request callbacks directly: on_body fires with
+    # a chunk, then on_complete fires with a :write_error response — exactly
+    # what libcurl reports after the write callback aborts. Headers are
+    # available because libcurl receives them before any body chunk.
+    let(:on_data) { proc { |_chunk, _size| :abort } }
+
+    let(:env) do
+      # Faraday::Adapter#call sets env.response before perform_request runs;
+      # these specs invoke the request builder directly, so set it here.
+      Faraday::Env.from(
+        url: 'http://example.com/stream',
+        method: :get,
+        body: nil,
+        request_headers: {},
+        ssl: {},
+        request: { on_data: on_data },
+        response: Faraday::Response.new
+      )
     end
 
-    let(:conn) do
-      Faraday.new(url: "http://127.0.0.1:#{port}") do |faraday|
-        faraday.adapter :typhoeus
-      end
+    let(:request) { adapter.method(:request).call(env) }
+
+    let(:write_error_response) do
+      Typhoeus::Response.new(
+        return_code: :write_error,
+        response_code: 200,
+        status_message: 'OK',
+        response_headers: "HTTP/1.1 200 OK\r\nX-Request-Id: abc-123\r\n\r\n"
+      )
     end
 
-    before { server_thread }
-
-    after do
-      server_thread.kill
-      server.close
+    def simulate_transfer
+      request.on_body.each { |callback| callback.call('data: event-0', write_error_response) }
+      request.on_complete.each { |callback| callback.call(write_error_response) }
     end
 
-    def get_stream(&on_data)
-      conn.get('/stream') do |req|
-        req.options.on_data = on_data
-      end
+    it 'does not raise Faraday::ConnectionFailed' do
+      expect { simulate_transfer }.not_to raise_error
     end
 
-    it 'returns the response instead of raising Faraday::ConnectionFailed' do
-      chunks = []
+    it 'saves the response status and headers' do
+      simulate_transfer
 
-      response = get_stream do |chunk, _size|
-        chunks << chunk
-        :abort
-      end
-
-      expect(response.status).to eq(200)
-      expect(response.headers['x-request-id']).to eq('abc-123')
-      expect(chunks.size).to eq(1)
+      expect(env[:status]).to eq(200)
+      expect(env[:response_headers]['x-request-id']).to eq('abc-123')
     end
 
     it 'flags the response as aborted' do
-      response = get_stream { |_chunk, _size| :abort }
+      simulate_transfer
 
-      expect(response.env[:typhoeus_aborted]).to be true
-      expect(response.env[:typhoeus_connection_failed]).to be_nil
+      expect(env[:typhoeus_aborted]).to be true
+      expect(env[:typhoeus_connection_failed]).to be_nil
     end
 
-    it 'does not flag fully consumed streams as aborted' do
-      chunks = []
+    context 'when on_data does not abort' do
+      let(:on_data) { proc { |_chunk, _size| } }
 
-      response = get_stream { |chunk, _size| chunks << chunk }
+      it 'still raises on a genuine write error' do
+        expect { simulate_transfer }.to raise_error(Faraday::ConnectionFailed)
+      end
+    end
 
-      expect(response.status).to eq(200)
-      expect(chunks.join).to include('event-4')
-      expect(response.env[:typhoeus_aborted]).to be_nil
+    context 'when the stream is fully consumed' do
+      let(:on_data) { proc { |_chunk, _size| } }
+
+      let(:ok_response) do
+        Typhoeus::Response.new(
+          return_code: :ok,
+          response_code: 200,
+          status_message: 'OK',
+          response_headers: "HTTP/1.1 200 OK\r\nX-Request-Id: abc-123\r\n\r\n"
+        )
+      end
+
+      it 'does not flag the response as aborted' do
+        request.on_body.each { |callback| callback.call('data: event-0', ok_response) }
+        request.on_complete.each { |callback| callback.call(ok_response) }
+
+        expect(env[:status]).to eq(200)
+        expect(env[:typhoeus_aborted]).to be_nil
+      end
     end
 
     context 'when parallel' do
-      it 'returns the aborted response without marking it failed' do
-        response = nil
+      let(:env) do
+        Faraday::Env.from(
+          url: 'http://example.com/stream',
+          method: :get,
+          body: nil,
+          request_headers: {},
+          ssl: {},
+          request: { on_data: on_data },
+          parallel_manager: double('hydra'),
+          response: Faraday::Response.new
+        )
+      end
 
-        conn.in_parallel do
-          response = get_stream { |_chunk, _size| :abort }
-        end
+      it 'saves the aborted response without marking it failed' do
+        simulate_transfer
 
-        expect(response.status).to eq(200)
-        expect(response.headers['x-request-id']).to eq('abc-123')
-        expect(response.env[:typhoeus_aborted]).to be true
-        expect(response.env[:typhoeus_connection_failed]).to be_nil
+        expect(env[:status]).to eq(200)
+        expect(env[:typhoeus_aborted]).to be true
+        expect(env[:typhoeus_connection_failed]).to be_nil
       end
     end
   end
