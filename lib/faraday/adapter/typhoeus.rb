@@ -59,6 +59,8 @@ module Faraday
         configure_timeout req, env
         configure_socket  req, env
 
+        aborted = false
+
         if env[:request][:on_data].is_a?(Proc)
           yielded = false
           size = 0
@@ -68,7 +70,9 @@ module Faraday
               yielded = true
               size += chunk.bytesize
 
-              env[:request][:on_data].call(chunk, size)
+              result = env[:request][:on_data].call(chunk, size)
+              aborted = true if result == :abort
+              result
             end
           end
 
@@ -84,6 +88,12 @@ module Faraday
             unless parallel?(env)
               raise Faraday::TimeoutError, resp.return_message
             end
+          elsif aborted && resp.return_code == :write_error
+            # Returning :abort from on_data stops the transfer, which libcurl
+            # reports as CURLE_WRITE_ERROR. This is an intentional early
+            # termination, not a connection failure, so fall through and save
+            # the response received so far (status line and headers).
+            env[:typhoeus_aborted] = true
           elsif resp.response_code.zero? || ((resp.return_code != :ok) && !resp.mock?)
             env[:typhoeus_connection_failed] = true
             env[:typhoeus_return_message] = resp.return_message

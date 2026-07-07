@@ -356,4 +356,113 @@ RSpec.describe Faraday::Adapter::Typhoeus do
       end
     end
   end
+
+  context 'when on_data returns :abort mid-stream' do
+    # libcurl only invokes the write callback on a real transfer, so these
+    # specs drive the Typhoeus request callbacks directly: on_body fires with
+    # a chunk, then on_complete fires with a :write_error response — exactly
+    # what libcurl reports after the write callback aborts. Headers are
+    # available because libcurl receives them before any body chunk.
+    let(:on_data) { proc { |_chunk, _size| :abort } }
+
+    let(:env) do
+      # Faraday::Adapter#call sets env.response before perform_request runs;
+      # these specs invoke the request builder directly, so set it here.
+      Faraday::Env.from(
+        url: 'http://example.com/stream',
+        method: :get,
+        body: nil,
+        request_headers: {},
+        ssl: {},
+        request: { on_data: on_data },
+        response: Faraday::Response.new
+      )
+    end
+
+    let(:request) { adapter.method(:request).call(env) }
+
+    let(:write_error_response) do
+      Typhoeus::Response.new(
+        return_code: :write_error,
+        response_code: 200,
+        status_message: 'OK',
+        response_headers: "HTTP/1.1 200 OK\r\nX-Request-Id: abc-123\r\n\r\n"
+      )
+    end
+
+    def simulate_transfer
+      request.on_body.each { |callback| callback.call('data: event-0', write_error_response) }
+      request.on_complete.each { |callback| callback.call(write_error_response) }
+    end
+
+    it 'does not raise Faraday::ConnectionFailed' do
+      expect { simulate_transfer }.not_to raise_error
+    end
+
+    it 'saves the response status and headers' do
+      simulate_transfer
+
+      expect(env[:status]).to eq(200)
+      expect(env[:response_headers]['x-request-id']).to eq('abc-123')
+    end
+
+    it 'flags the response as aborted' do
+      simulate_transfer
+
+      expect(env[:typhoeus_aborted]).to be true
+      expect(env[:typhoeus_connection_failed]).to be_nil
+    end
+
+    context 'when on_data does not abort' do
+      let(:on_data) { proc { |_chunk, _size| } }
+
+      it 'still raises on a genuine write error' do
+        expect { simulate_transfer }.to raise_error(Faraday::ConnectionFailed)
+      end
+    end
+
+    context 'when the stream is fully consumed' do
+      let(:on_data) { proc { |_chunk, _size| } }
+
+      let(:ok_response) do
+        Typhoeus::Response.new(
+          return_code: :ok,
+          response_code: 200,
+          status_message: 'OK',
+          response_headers: "HTTP/1.1 200 OK\r\nX-Request-Id: abc-123\r\n\r\n"
+        )
+      end
+
+      it 'does not flag the response as aborted' do
+        request.on_body.each { |callback| callback.call('data: event-0', ok_response) }
+        request.on_complete.each { |callback| callback.call(ok_response) }
+
+        expect(env[:status]).to eq(200)
+        expect(env[:typhoeus_aborted]).to be_nil
+      end
+    end
+
+    context 'when parallel' do
+      let(:env) do
+        Faraday::Env.from(
+          url: 'http://example.com/stream',
+          method: :get,
+          body: nil,
+          request_headers: {},
+          ssl: {},
+          request: { on_data: on_data },
+          parallel_manager: double('hydra'),
+          response: Faraday::Response.new
+        )
+      end
+
+      it 'saves the aborted response without marking it failed' do
+        simulate_transfer
+
+        expect(env[:status]).to eq(200)
+        expect(env[:typhoeus_aborted]).to be true
+        expect(env[:typhoeus_connection_failed]).to be_nil
+      end
+    end
+  end
 end

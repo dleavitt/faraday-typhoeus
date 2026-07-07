@@ -99,22 +99,27 @@ body = chunks.join
 
 body = nil
 
-begin
-  conn.get('/events') do |req|
-    req.options.timeout = 30
+response = conn.get('/events') do |req|
+  req.options.timeout = 30
 
-    req.options.on_data = proc do |chunk|
-      # stop listening once we get some data (YMMV)
-      if chunk.start_with?('data: ')
-        body = chunk
-        :abort # abort the request, we're done
-      end
+  req.options.on_data = proc do |chunk|
+    # stop listening once we get some data (YMMV)
+    if chunk.start_with?('data: ')
+      body = chunk
+      :abort # abort the request, we're done
     end
   end
-rescue Faraday::ConnectionFailed => ex
-  raise ex unless body
 end
+
+response.status  # the response status line and headers received before the
+response.headers # abort are still available
+response.env[:typhoeus_aborted] # => true
 ```
+
+Returning `:abort` from `on_data` closes the connection early without raising:
+the adapter returns a `Faraday::Response` built from whatever arrived before
+the abort (status line and headers), and sets `env[:typhoeus_aborted]` so
+callers can distinguish an aborted stream from a fully consumed one.
 
 ### Compression
 
