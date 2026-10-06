@@ -30,11 +30,13 @@ end
 
 You can also include options for [Typhoeus][typhoeus_options]/[Ethon][ethon_options] that will be used in every request:
 
-Note that block-style configuration for the adapter is not currently supported.
+The adapter block is called with each `Typhoeus::Request`:
 
 ```ruby
 conn = Faraday.new(...) do |f|
-  f.adapter :typhoeus, forbid_reuse: true, maxredirs: 1
+  f.adapter :typhoeus, forbid_reuse: true, maxredirs: 1 do |request|
+    request.on_headers { |response| handle_headers(response) }
+  end
 end
 ```
 
@@ -139,7 +141,7 @@ To release a new version, update the version number in `version.rb`, and then ru
 ### TODO
 
 - [ ] Better tests for parallel functionality (can port them over from Typhoeus)
-- [ ] Support block-based configuration like other adapters
+- [x] Support block-based configuration like other adapters
 - [ ] Refactor the adapter a bit to look more like other Faraday 2 adapters (use `connection` etc.)
 - [x] Compression support
 - [x] Reason-phrase parsing support

@@ -58,6 +58,7 @@ module Faraday
         configure_proxy   req, env
         configure_timeout req, env
         configure_socket  req, env
+        @config_block&.call(req)
 
         if env[:request][:on_data].is_a?(Proc)
           yielded = false

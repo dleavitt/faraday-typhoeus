@@ -107,6 +107,14 @@ RSpec.describe Faraday::Adapter::Typhoeus do
     it 'sets on_complete callback' do
       expect(request.on_complete.size).to eq(1)
     end
+
+    context 'when configuration block specified' do
+      let(:adapter) { described_class.new(nil) { |request| request.options[:verbose] = true } }
+
+      it 'applies it to request' do
+        expect(request.options[:verbose]).to be(true)
+      end
+    end
   end
 
   describe '#configure_socket' do
