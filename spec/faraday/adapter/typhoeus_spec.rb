@@ -163,6 +163,19 @@ RSpec.describe Faraday::Adapter::Typhoeus do
         it 'sets proxyuserpwd' do
           expect(request.options[:proxyuserpwd]).to eq('a:b')
         end
+
+        it 'lets curl pick the auth method' do
+          expect(request.options[:proxyauth]).to eq(:any)
+        end
+
+        context 'when proxyauth is set in the adapter options' do
+          let(:adapter) { described_class.new(nil, { proxyauth: :basic }) }
+          let(:request) { adapter.method(:typhoeus_request).call({}) }
+
+          it 'keeps it' do
+            expect(request.options[:proxyauth]).to eq(:basic)
+          end
+        end
       end
     end
   end
