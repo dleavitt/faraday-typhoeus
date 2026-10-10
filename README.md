@@ -38,6 +38,14 @@ conn = Faraday.new(...) do |f|
 end
 ```
 
+When a proxy has a username and password, the adapter sets `proxyauth: :any`, so libcurl waits for the proxy's 407 challenge before it sends them. Pass `proxyauth: :basic` to send Basic credentials with the first request instead. This saves a round trip on every new proxy connection, and works with proxies that close the connection after the challenge:
+
+```ruby
+conn = Faraday.new(..., proxy: 'http://user:password@proxy.example.com:8080') do |f|
+  f.adapter :typhoeus, proxyauth: :basic
+end
+```
+
 ### Parallel Requests
 
 The adapter supports Typhoeus's parallel request functionality:
